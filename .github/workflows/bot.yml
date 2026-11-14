@@ -3,6 +3,11 @@ on:
   schedule:
     - cron: "*/5 * * * *"
   workflow_dispatch:
+    inputs:
+      test:
+        description: "Envoyer un message de test"
+        type: boolean
+        default: false
 
 jobs:
   analyse:
@@ -14,3 +19,7 @@ jobs:
           python-version: "3.11"
       - run: pip install yfinance pandas ta requests
       - run: python gold_bot.py
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TEST_MESSAGE: ${{ inputs.test }}
