@@ -1,3 +1,4 @@
+import os
 import requests
 import pandas as pd
 import yfinance as yf
@@ -5,18 +6,17 @@ from ta.trend import EMAIndicator
 from ta.momentum import RSIIndicator
 from ta.volatility import AverageTrueRange
 
-CANAL = "goldbot-k7x2q9m4wz81"
+TOKEN = os.environ["TELEGRAM_TOKEN"]
+CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
 SYMBOL = "GC=F"
 INTERVAL = "15m"
 RR = 2.0
 
 
-def envoyer(titre, texte):
-    requests.post(
-        f"https://ntfy.sh/{CANAL}",
-        data=texte.encode("utf-8"),
-        headers={"Title": titre, "Priority": "high"},
-    )
+def envoyer(texte):
+    url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+    r = requests.post(url, data={"chat_id": CHAT_ID, "text": texte})
+    print("Telegram :", r.status_code)
 
 
 def donnees():
@@ -52,7 +52,7 @@ def analyser(df):
 def message(sig):
     genre, entree, sl, tp = sig
     return (
-        f"{genre} sur XAUUSD\n"
+        f"SIGNAL OR (XAUUSD) : {genre}\n"
         f"Entree : {entree}\nStop loss : {sl}\nTake profit : {tp}\n"
         "Ratio 1 pour 2\n\n"
         "Dans MetaTrader 5 :\n"
@@ -67,10 +67,12 @@ def message(sig):
 
 
 if __name__ == "__main__":
-    sig = analyser(donnees())
-    if sig:
-        envoyer(f"Signal OR : {sig[0]}", message(sig))
-        print("Signal envoye", sig)
+    if os.environ.get("TEST_MESSAGE") == "true":
+        envoyer("Test OK : ton bot Telegram fonctionne.")
     else:
-        print("Pas de signal")
-      
+        sig = analyser(donnees())
+        if sig:
+            envoyer(message(sig))
+            print("Signal envoye", sig)
+        else:
+            print("Pas de signal")
