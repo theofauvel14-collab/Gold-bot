@@ -9,6 +9,9 @@ on:
         type: boolean
         default: false
 
+permissions:
+  contents: write
+
 jobs:
   analyse:
     runs-on: ubuntu-latest
@@ -23,3 +26,11 @@ jobs:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TEST_MESSAGE: ${{ inputs.test }}
+      - name: Sauvegarder l'etat
+        run: |
+          git config user.name "gold-bot"
+          git config user.email "gold-bot@users.noreply.github.com"
+          if [ -f state.json ]; then
+            git add state.json
+            git diff --staged --quiet || (git commit -m "etat du bot" && git push)
+          fi
